@@ -13,7 +13,7 @@ WPOS = [(0,0), (1,0), (2,0),
 tbl_x = lambda i: i*(DOTSIZE + DOTSPACE)
 tbl_y = lambda j: j*(DOTSIZE + DOTSPACE)
 
-def draw_tbl(cr, x, y, sz, interp=None):
+def draw_interp(cr, x, y, sz, interp=None):
     for j in range(sz):
         for i in range(sz):
             if interp and (i, j) in interp:
@@ -23,7 +23,7 @@ def draw_tbl(cr, x, y, sz, interp=None):
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
-def draw_tbl2(cr, x, y, sz, required_dots, conditionnal_diff):
+def draw_combi(cr, x, y, sz, required_dots, conditionnal_diff):
     for j in range(sz):
         for i in range(sz):
             if (j, i) == (1, 1):
@@ -83,7 +83,7 @@ def main():
         # draw interpolation
         pos, interp_values = data.interp_def[dim][interpid]
         interp = [WPOS[p] for p in pos]
-        draw_tbl(cr, x, y, SZ, interp)
+        draw_interp(cr, x, y, SZ, interp)
 
         # draw combinations
         n = 0
@@ -93,7 +93,7 @@ def main():
                 if n and n % MAX_NB_W == 0:
                     x = MARGINX + STEP
                     y += STEP
-                draw_tbl2(cr, x, y, SZ, dots, cond)
+                draw_combi(cr, x, y, SZ, dots, cond)
                 x += STEP
                 n += 1
         y += STEP
