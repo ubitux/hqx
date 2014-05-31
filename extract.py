@@ -14,6 +14,7 @@ for line in open(common_h).readlines():
         coeffs, nbits = nums[:-1], nums[-1]
         interps_values.append((coeffs, nbits))
 
+interps = {}
 interp_def = {}
 data = {}
 for i in [2, 3, 4]:
@@ -22,16 +23,23 @@ for i in [2, 3, 4]:
     interp_defx = {}
     reset_cases = True
     rules = {}
+    interpid_list = []
 
     for line in open(hqx_c).readlines():
         line = line.strip()
 
         # Interpolations
-        if line.startswith('#define PIXEL') and 'Interp' in line:
-            m = re.match(r'.*PIXEL(\d+)_([^ ]+) +Interp(\d+)', line)
-            dim, idx, interp = m.group(1, 2, 3)
-            pos = [int(x) - 1 for x in re.findall('\[(\d+)\]', line)]
-            interp_defx['%s_%s' % (dim, idx)] = (pos, int(interp) - 1)
+        if line.startswith('#define PIXEL'):
+            if 'Interp' in line:
+                m = re.match(r'.*PIXEL([^ ]+) +Interp(\d+)', line)
+                interpid, interp = m.group(1, 2)
+                pos = [int(x) - 1 for x in re.findall('\[(\d+)\]', line)]
+                interp_defx[interpid] = (pos, int(interp) - 1)
+            else:
+                m = re.match(r'.*PIXEL([^ ]+)', line)
+                interpid = m.group(1)
+                interp_defx[interpid] = ([4], -1)
+            interpid_list.append(interpid)
 
         # Combinations
         elif line.startswith('case '):
@@ -55,10 +63,14 @@ for i in [2, 3, 4]:
                 pxrules[current_condition] = sorted(condrules)
                 rules[pxid] = pxrules
 
+    interps[i] = interpid_list
     interp_def[i] = interp_defx
     data[i] = rules
 
 open('data.py', 'w').write('''
+interps = \\
+%s
+
 interp_values = \\
 %s
 
@@ -68,6 +80,7 @@ interp_def = \\
 combinations = \\
 %s
 ''' % (
+    pprint.pformat(interps),
     pprint.pformat(interps_values),
     pprint.pformat(interp_def, width=200),
     pprint.pformat(data, width=200),
