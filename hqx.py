@@ -1,3 +1,4 @@
+import data
 import cairo, sys
 
 DOTSIZE  = 10
@@ -51,8 +52,6 @@ def main():
     dim = int(sys.argv[1])
     SZ = 3
     STEP = SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
-
-    import data
 
     interps = [i for i in data.interps[dim] if i.startswith('00')]
 
