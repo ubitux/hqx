@@ -70,11 +70,13 @@ if __name__ == '__main__':
 
         interpid = sys.argv[2]
 
-        nb_w, nb_h = 0, 0
-        for cond, permuts in rules.data[interpid].items():
-            for common_dots, all_specific_dots in permuts:
-                nb_w = max(nb_w, len(all_specific_dots))
-                nb_h += 1
+        max_nb_w = 15
+
+        total = 0
+        for cond, permuts in rules.data[dim][interpid].items():
+            total += len(permuts)
+        nb_w = min(total, max_nb_w)
+        nb_h = total / nb_w + (1 if total % nb_w else 0)
         w = 2*MARGINX + nb_w*SZ*DOTSIZE + nb_w*(SZ-1)*DOTSPACE + (nb_w-1)*TBLSPACE
         h = 2*MARGINY + nb_h*SZ*DOTSIZE + nb_h*(SZ-1)*DOTSPACE + (nb_h-1)*TBLSPACE
 
@@ -84,15 +86,18 @@ if __name__ == '__main__':
         cr.rectangle(0, 0, w, h)
         cr.fill()
 
-        y = MARGINY
-        for cond, permuts in rules.data[interpid].items():
-            for common_dots, all_specific_dots in permuts:
-                x = MARGINX
-                for specific_dots in all_specific_dots:
-                    dots = common_dots + specific_dots
-                    draw_tbl2(x, y, SZ, dots, cond)
+        n = 0
+        x, y = MARGINX, MARGINY
+        for cond, permuts in rules.data[dim][interpid].items():
+            for dots in permuts:
+                draw_tbl2(x, y, SZ, dots, cond)
+                n += 1
+                if n == max_nb_w:
+                    x = MARGINX
+                    y += STEP
+                    n = 0
+                else:
                     x += STEP
-                y += STEP
 
         s.write_to_png('hqx%d-%s.png' % (dim, interpid))
 
