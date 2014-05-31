@@ -67,13 +67,13 @@ if __name__ == '__main__':
     STEP = SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
 
     if len(sys.argv) > 2:
-        import rules, data
+        import data
 
         interpid = sys.argv[2]
 
         # estimate size
         total = 0
-        for cond, permuts in rules.data[dim][interpid].items():
+        for cond, permuts in data.combinations[dim][interpid].items():
             total += len(permuts)
         nb_w = min(total, MAX_NB_W) + 1
         nb_h = total / nb_w + (1 if total % nb_w else 0)
@@ -89,7 +89,6 @@ if __name__ == '__main__':
 
         # draw interpolation
         pos, interp_values = data.interp_def[dim].get(interpid, ([], -1))
-        print interpid
         interp = [WPOS[p] for p in pos]
         draw_tbl(MARGINX, MARGINY, SZ, interp)
 
@@ -97,7 +96,7 @@ if __name__ == '__main__':
         n = 0
         MARGIN_LEFT = MARGINX + SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
         x, y = MARGIN_LEFT, MARGINY
-        for cond, permuts in rules.data[dim][interpid].items():
+        for cond, permuts in data.combinations[dim][interpid].items():
             for dots in permuts:
                 draw_tbl2(x, y, SZ, dots, cond)
                 n += 1
