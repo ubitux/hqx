@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
         # draw combinations
         n = 0
-        MARGIN_LEFT = MARGINX + SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
+        MARGIN_LEFT = MARGINX + STEP
         x, y = MARGIN_LEFT, MARGINY
         for cond, permuts in data.combinations[dim][interpid].items():
             for dots in permuts:
