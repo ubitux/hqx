@@ -13,11 +13,15 @@ WPOS = [(0,0), (1,0), (2,0),
 tbl_x = lambda i: i*(DOTSIZE + DOTSPACE)
 tbl_y = lambda j: j*(DOTSIZE + DOTSPACE)
 
-def draw_interp(cr, x, y, sz, interp=None):
+def draw_interp(cr, x, y, sz, interp, values):
+    coeffs, nbits = values
+    coeff_id = 0
     for j in range(sz):
         for i in range(sz):
-            if interp and (i, j) in interp:
-                cr.set_source_rgb(1, 1, 1)
+            if (i, j) in interp:
+                power = 1. - float(coeffs[coeff_id]) / (1<<nbits)
+                coeff_id += 1
+                cr.set_source_rgb(power, 1, 1)
             else:
                 cr.set_source_rgb(0.4, 0.4, 0.4)
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
@@ -81,9 +85,9 @@ def main():
         x = MARGINX
 
         # draw interpolation
-        pos, interp_values = data.interp_def[dim][interpid]
+        pos, interp_values_id = data.interp_def[dim][interpid]
         interp = [WPOS[p] for p in pos]
-        draw_interp(cr, x, y, SZ, interp)
+        draw_interp(cr, x, y, SZ, interp, data.interp_values[interp_values_id])
 
         # draw combinations
         n = 0

@@ -7,12 +7,12 @@ k_to_pos = [(0,0), (1,0), (2,0),
             (0,2), (1,2), (2,2)]
 
 common_h = hqx_path + '/common.h'
-interps_values = []
+interp_values = [([1], 0)]
 for line in open(common_h).readlines():
     if 'pc = Interp' in line:
         nums = [int(x) for x in re.findall('[^c_](\d+)', line)]
         coeffs, nbits = nums[:-1], nums[-1]
-        interps_values.append((coeffs, nbits))
+        interp_values.append((coeffs, nbits))
 
 interps = {}
 interp_def = {}
@@ -34,11 +34,11 @@ for i in [2, 3, 4]:
                 m = re.match(r'.*PIXEL([^ ]+) +Interp(\d+)', line)
                 interpid, interp = m.group(1, 2)
                 pos = [int(x) - 1 for x in re.findall('\[(\d+)\]', line)]
-                interp_defx[interpid] = (pos, int(interp) - 1)
+                interp_defx[interpid] = (pos, int(interp))
             else:
                 m = re.match(r'.*PIXEL([^ ]+)', line)
                 interpid = m.group(1)
-                interp_defx[interpid] = ([4], -1)
+                interp_defx[interpid] = ([4], 0)
             interpid_list.append(interpid)
 
         # Combinations
@@ -81,7 +81,7 @@ combinations = \\
 %s
 ''' % (
     pprint.pformat(interps),
-    pprint.pformat(interps_values),
+    pprint.pformat(interp_values),
     pprint.pformat(interp_def, width=200),
     pprint.pformat(data, width=200),
 ))
