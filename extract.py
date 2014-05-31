@@ -1,6 +1,6 @@
 import pprint, re
 
-hqx_path = '/home/ubitux/src/hqx-read-only/src'
+hqx_path = 'hqx-read-only/src'
 
 k_to_pos = [(0,0), (1,0), (2,0),
             (0,1),        (2,1),

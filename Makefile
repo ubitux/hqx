@@ -1,4 +1,8 @@
 all: show
+hqx-read-only:
+	# tested with revision 14
+	svn checkout http://hqx.googlecode.com/svn/trunk/ hqx-read-only
+extract.py: hqx-read-only
 data.py: extract.py
 	python2 ./extract.py
 hqx.py: data.py
