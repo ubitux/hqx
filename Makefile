@@ -13,4 +13,6 @@ show: hq2x.png
 clean:
 	$(RM) *.pyc hq*x.png data.py
 re: clean all
+distclean: clean
+	$(RM) -r hqx-read-only
 .PHONY: all show clean re
