@@ -1,5 +1,5 @@
 import data
-import cairo, sys
+import cairo, sys, itertools
 
 DOTSIZE  = 10
 DOTSPACE = 5
@@ -27,15 +27,18 @@ def draw_interp(cr, x, y, sz, interp, values):
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
-def draw_combi(cr, x, y, sz, required_dots, conditionnal_diff):
+def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
+    enabled_dots, disabled_dots = dots
     for j in range(sz):
         for i in range(sz):
             if (j, i) == (1, 1):
                 continue
-            if (i, j) in required_dots:
+            if (i, j) in enabled_dots:
                 cr.set_source_rgb(1, 0, 0)
-            else:
+            elif (i, j) in disabled_dots:
                 cr.set_source_rgb(0.4, 0.4, 0.4)
+            else:
+                cr.set_source_rgb(0, 0, 0) # optionals (value doesn't matter)
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
@@ -51,6 +54,105 @@ def draw_combi(cr, x, y, sz, required_dots, conditionnal_diff):
         cr.close_path()
         cr.stroke()
 
+ppos = [(0,0), (1,0), (2,0),
+        (0,1),        (2,1),
+        (0,2), (1,2), (2,2)]
+
+def comb2bin(comb):
+    return ''.join('1' if pos in comb else '0' for pos in ppos)
+
+def idx2pos(k):
+    return ppos[k]
+
+def factor_combs(combs):
+
+    bins = [comb2bin(comb) for comb in combs]
+
+    factor_bins = []
+
+    def all_needs_met(needs):
+        for _, met in needs:
+            if met == False:
+                return False
+        return True
+
+    for b in bins:
+        current_set = []
+
+        for b2 in bins:
+            if b2 == b:
+                continue
+
+            # 'x' for common dot, '.' otherwise
+            diff = ''.join('x' if x == y else '.' for x, y in zip(b, b2))
+            nb_diff = diff.count('.')
+
+            # generate all combinations (for the combinable dots) that needs to
+            # be met in the subset to assume that they are optional
+            products = [x for x in itertools.product('01', repeat=nb_diff)]
+            need = []
+            assert len(products) == 1<<nb_diff
+
+            # generate the full combinations list in `need`
+            for i in range(len(products)):
+                new_need = ''
+                product_pos = 0
+                for pos, k in enumerate(diff):
+                    if k == '.':
+                        new_need += products[i][product_pos]
+                        product_pos += 1
+                    else:
+                        new_need += b[pos]
+                need.append((new_need, new_need in bins))
+
+            # if all the needs are met and the set is not already present, we
+            # add it to `factor_bins`
+            if all_needs_met(need):
+                merged_bins = set([x for x, _ in need])
+                if merged_bins not in [x for _, x in factor_bins]:
+                    factor_bins.append((diff, merged_bins))
+
+    # keep the best factorisations
+    def is_a_subset_of_another(fbins, x):
+        for _, e in fbins:
+            if x < e:
+                return True
+        return False
+    best_factor_bins = [(diff, list(x)) for (diff, x) in factor_bins if not is_a_subset_of_another(factor_bins, x)]
+
+    # construct output combs with optional support (such as "10.1..0.")
+    patterns = []
+    for diff, matches in best_factor_bins:
+        patterns.append(''.join(matches[0][i] if k == 'x' else '.' for i, k in enumerate(diff)))
+
+    # add the bins that match none of the patterns
+    def match_a_pattern(b, combs):
+        for comb in combs:
+            match = True
+            for i, k in enumerate(comb):
+                if k != '.' and b[i] != k:
+                    match = False
+                    break
+            if match:
+                return True
+        return False
+    non_patterns = [b for b in bins if not match_a_pattern(b, patterns)]
+    out_bins = patterns + non_patterns
+
+    # convert bins back to positions
+    out_combs = []
+    for out_bin in out_bins:
+        pos_enabled  = []
+        pos_disabled = []
+        for i, k in enumerate(out_bin):
+            if k == '0':
+                pos_disabled.append(idx2pos(i))
+            elif k == '1':
+                pos_enabled.append(idx2pos(i))
+        out_combs.append((pos_enabled, pos_disabled))
+
+    return out_combs
+
 def main():
 
     dim = int(sys.argv[1])
@@ -58,6 +160,13 @@ def main():
     STEP = SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
 
     interps = [i for i in data.interps[dim] if i.startswith('00')]
+
+    # pre process combs:
+    for interpid in interps:
+        new_cond_permuts = {}
+        for cond, permuts in data.combinations[dim][interpid].items():
+            new_cond_permuts[cond] = factor_combs(permuts)
+        data.combinations[dim][interpid] = new_cond_permuts
 
     # estimate size
     nb_w, nb_h = 0, 0
