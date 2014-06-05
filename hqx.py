@@ -5,7 +5,7 @@ DOTSIZE  = 10
 DOTSPACE = 5
 TBLSPACE = 15
 MARGINX = MARGINY = 10
-MAX_NB_W = 20
+MAX_NB_W = 15
 WPOS = [(0,0), (1,0), (2,0),
         (0,1), (1,1), (2,1),
         (0,2), (1,2), (2,2)]
@@ -175,7 +175,7 @@ def main():
         for cond, permuts in data.combinations[dim][interpid].items():
             nb_permuts = len(permuts)
             total_permuts += nb_permuts
-            nb_w = min(max(nb_permuts, nb_w), MAX_NB_W)
+        nb_w = min(max(total_permuts, nb_w), MAX_NB_W)
         nb_h += total_permuts / nb_w + (1 if total_permuts % nb_w else 0)
     nb_w += 1
 
