@@ -15,12 +15,11 @@ tbl_y = lambda j: j*(DOTSIZE + DOTSPACE)
 
 def draw_interp(cr, x, y, sz, interp, values):
     coeffs, nbits = values
-    coeff_id = 0
     for j in range(sz):
         for i in range(sz):
             if (i, j) in interp:
-                power = 1. - float(coeffs[coeff_id]) / (1<<nbits)
-                coeff_id += 1
+                coeff = coeffs[interp.index((i, j))]
+                power = 1. - float(coeff) / (1<<nbits)
                 cr.set_source_rgb(power, 1, 1)
             else:
                 cr.set_source_rgb(0.4, 0.4, 0.4)
