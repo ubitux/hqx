@@ -5,10 +5,7 @@ ppos = [(0,0), (1,0), (2,0),
         (0,1),        (2,1),
         (0,2), (1,2), (2,2)]
 
-def main():
-
-    dim = int(sys.argv[1])
-
+def create_ast(dim):
     interps = [i for i in data.interps[dim] if i.startswith('00')]
 
     def interps_cmp(x, y):
@@ -16,7 +13,6 @@ def main():
         ny = sum(len(permuts) for _, permuts in data_pp.combinations[dim][y].items())
         return nx - ny
 
-    # create AST
     root_cond = None
 
     for i, interpid in enumerate(sorted(interps, cmp=interps_cmp)):
@@ -59,6 +55,13 @@ def main():
             assert entry_cond[3] is None
             entry_cond[3] = ['if', ast_cond, 'PIXEL%s' % interpid, None]
             entry_cond = entry_cond[3]
+
+    return root_cond
+
+def main():
+    dim = int(sys.argv[1])
+
+    root_cond = create_ast(dim)
 
     open('hq%dx_tpl.c' % dim, 'w').write(pprint.pformat(root_cond, width=200))
 
