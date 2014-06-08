@@ -59,7 +59,8 @@ def main():
     SZ = 3
     STEP = SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
 
-    interps = [i for i in data.interps[dim] if i.startswith('00')]
+    #interps = [i for i in data.interps[dim] if i.startswith('00')]
+    interps = data.interps[dim]
 
     # estimate size
     nb_w, nb_h = 0, 0

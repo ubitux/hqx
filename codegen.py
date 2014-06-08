@@ -5,6 +5,20 @@ ppos = [(0,0), (1,0), (2,0),
         (0,1),        (2,1),
         (0,2), (1,2), (2,2)][::-1]
 
+def get_interp_str(dim, interpid):
+    prefix = 'return '
+    pxidx, idx = data.interp_def[dim][interpid]
+    coeffs, shift = data.interp_values[idx]
+    n = len(pxidx)
+    if n == 1:
+        return prefix + 'w%d;' % pxidx[0]
+
+    params = []
+    for i, w in enumerate(pxidx):
+        params += ['w%d' % w, coeffs[i]]
+    params.append(shift)
+    return prefix + 'interp_%dpx(%s);' % (n, ', '.join(map(str, params)))
+
 def create_ast(dim, dstpos):
     interps = [i for i in data.interps[dim] if i.startswith(dstpos)]
 
@@ -39,23 +53,23 @@ def create_ast(dim, dstpos):
             for dot in disabled_dots:
                 mask_nodiff |= 1<<ppos.index(dot)
             mask_values_that_matter = mask_diff | mask_nodiff
-            ast_cond.append('(k&0x%02x) == 0x%02x' % (mask_values_that_matter, mask_diff))
+            ast_cond.append('P(0x%02x,0x%02x)' % (mask_values_that_matter, mask_diff))
 
         if len(ast_cond) == 2:
             ast_cond = ast_cond[1]
 
         if cond:
-            diff_func = 'Diff(hqx, w[%d], w[%d])' % (cond[0]+1, cond[1]+1)
+            diff_func = 'WDIFF(w%d, w%d)' % (cond[0], cond[1])
             ast_cond = ['&&', ast_cond, diff_func]
 
         if not root_cond:
-            root_cond = entry_cond = ['if', ast_cond, 'PIXEL%s' % interpid, None]
+            root_cond = entry_cond = ['if', ast_cond, get_interp_str(dim, interpid), None]
         elif i == len(combs) - 1:
             assert entry_cond[3] is None
-            entry_cond[3] = 'PIXEL%s' % interpid
+            entry_cond[3] = get_interp_str(dim, interpid)
         else:
             assert entry_cond[3] is None
-            entry_cond[3] = ['if', ast_cond, 'PIXEL%s' % interpid, None]
+            entry_cond[3] = ['if', ast_cond, get_interp_str(dim, interpid), None]
             entry_cond = entry_cond[3]
 
     return root_cond
@@ -70,12 +84,8 @@ def get_c_code(node, need_protective_parenthesis=True):
     if node[0] == 'if':
         code.append('if (%s)' % get_c_code(node[1], need_protective_parenthesis=False))
         code.append(' ' * 4 + get_c_code(node[2]))
-        code.append('else')
         c_code = get_c_code(node[3])
-        if c_code.startswith('if'):
-            code[-1] += ' ' + c_code
-        else:
-            code.append(' ' * 4 + c_code)
+        code.append(c_code)
         return '\n'.join(code)
 
     assert node[0] in ('||', '&&')
@@ -85,12 +95,7 @@ def get_c_code(node, need_protective_parenthesis=True):
 def main():
     dim = int(sys.argv[1])
 
-    code = ''
-
-    code += get_c_code(create_ast(dim, '00')) + '\n\n'
-    code += get_c_code(create_ast(dim, '01')) + '\n\n'
-    code += get_c_code(create_ast(dim, '10')) + '\n\n'
-    code += get_c_code(create_ast(dim, '11')) + '\n\n'
+    code = get_c_code(create_ast(dim, '00')) + '\n'
 
     open('hq%dx_tpl.c' % dim, 'w').write(code)
 
