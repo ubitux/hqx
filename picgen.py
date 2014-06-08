@@ -58,7 +58,15 @@ def main():
     SZ = 3
     STEP = SZ*DOTSIZE + (SZ-1)*DOTSPACE + TBLSPACE
 
-    interps = [i for i in data.interps[dim] if i.startswith('00')]
+    mandatory_prefixes = {
+        2: ['00'],
+        3: None, # TODO
+        4: ['00', '01', '10', '11']
+    }
+
+    interps = []
+    for prefix in mandatory_prefixes[dim]:
+        interps += [i for i in data.interps[dim] if i.startswith(prefix)]
 
     # estimate size
     nb_w, nb_h = 0, 0
@@ -82,8 +90,18 @@ def main():
     cr.fill()
 
     y = MARGINY
+    prefix = None
     for interpid in interps:
         x = MARGINX
+
+        new_prefix = interpid[:2]
+        if prefix and prefix != new_prefix:
+            cr.set_line_width(2)
+            cr.set_source_rgb(1, 1, 0)
+            cr.move_to(x, y - TBLSPACE/2)
+            cr.line_to(x + w - 2*MARGINX, y - TBLSPACE/2)
+            cr.stroke()
+        prefix = new_prefix
 
         # draw interpolation
         pos, interp_values_id = data.interp_def[dim][interpid]
