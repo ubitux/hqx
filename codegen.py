@@ -95,7 +95,15 @@ def get_c_code(node, need_protective_parenthesis=True):
 def main():
     dim = int(sys.argv[1])
 
-    code = get_c_code(create_ast(dim, '00')) + '\n'
+    if dim == 2:
+        code = get_c_code(create_ast(dim, '00')) + '\n'
+    elif dim == 3:
+        raise "TODO"
+    elif dim == 4:
+        code  = get_c_code(create_ast(dim, '00')) + '\n // ------------ \n'
+        code += get_c_code(create_ast(dim, '01')) + '\n // ------------ \n'
+        code += get_c_code(create_ast(dim, '10')) + '\n // ------------ \n'
+        code += get_c_code(create_ast(dim, '11')) + '\n'
 
     open('hq%dx_tpl.c' % dim, 'w').write(code)
 
