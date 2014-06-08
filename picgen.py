@@ -94,6 +94,8 @@ def main():
     for interpid in interps:
         x = MARGINX
 
+        # add a separation line between interpolation group (different
+        # destinations)
         new_prefix = interpid[:2]
         if prefix and prefix != new_prefix:
             cr.set_line_width(2)
