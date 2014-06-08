@@ -30,7 +30,7 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
     enabled_dots, disabled_dots = dots
     for j in range(sz):
         for i in range(sz):
-            if (j, i) == (1, 1):
+            if (i, j) == (1, 1):
                 continue
             if (i, j) in enabled_dots:
                 cr.set_source_rgb(1, 0, 0)

@@ -4,7 +4,7 @@ hqx_path = 'hqx-read-only/src'
 
 k_to_pos = [(0,0), (1,0), (2,0),
             (0,1),        (2,1),
-            (0,2), (1,2), (2,2)]
+            (0,2), (1,2), (2,2)][::-1]
 
 common_h = hqx_path + '/common.h'
 interp_values = [([1], 0)]
@@ -53,6 +53,7 @@ for i in [2, 3, 4]:
             reset_cases = True
             if 'Diff(' in line:
                 current_condition = tuple(int(x) - 1 for x in re.findall('\[(\d+)\]', line))
+                assert len(current_condition) == 2
             elif 'else' in line:
                 current_condition = None
             elif line.startswith('PIXEL'):
