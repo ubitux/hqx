@@ -50,7 +50,6 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
                    y + tbl_y(pt0 / 3) + DOTSIZE/2)
         cr.line_to(x + tbl_x(pt1 % 3) + DOTSIZE/2,
                    y + tbl_y(pt1 / 3) + DOTSIZE/2)
-        cr.close_path()
         cr.stroke()
 
 def main():
