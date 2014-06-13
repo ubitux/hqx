@@ -74,8 +74,6 @@ def create_ast(dim, dstpos):
 
     return root_cond
 
-
-
 def get_code(node, need_protective_parenthesis=True):
     if not isinstance(node, list):
         return [node]
