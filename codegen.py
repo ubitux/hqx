@@ -74,23 +74,44 @@ def create_ast(dim, dstpos):
 
     return root_cond
 
-def get_c_code(node, need_protective_parenthesis=True):
 
-    code = []
 
+def get_code(node, need_protective_parenthesis=True):
     if not isinstance(node, list):
-        return node
+        return [node]
 
     if node[0] == 'if':
-        code.append('if (%s)' % get_c_code(node[1], need_protective_parenthesis=False))
-        code.append(' ' * 4 + get_c_code(node[2]))
-        c_code = get_c_code(node[3])
-        code.append(c_code)
-        return '\n'.join(code)
+        code = ['if (%s)' % get_code(node[1], need_protective_parenthesis=False)[0]]
+        for x in get_code(node[2]):
+            code.append(' ' * 4 + x)
+        code += get_code(node[3])
+        return code
 
     assert node[0] in ('||', '&&')
-    c_code = (' %s ' % node[0]).join(get_c_code(x) for x in node[1:])
-    return '(%s)' % c_code if need_protective_parenthesis else c_code
+    code = []
+    for x in node[1:]:
+        code += get_code(x)
+    c_code = (' %s ' % node[0]).join(code)
+    return ['(%s)' % c_code if need_protective_parenthesis else c_code]
+
+def reformat_code(code):
+    MAX_LEN = 80
+    new_code = []
+    for line in code:
+        line = ' '*4 + line
+        while len(line) > MAX_LEN:
+            hard_trunc = line[:MAX_LEN]
+            cut_pos = max(hard_trunc.rfind('&'), hard_trunc.rfind('|'))
+            assert cut_pos != -1 # assume code is always breakable
+            cut_pos += 1
+            new_code.append(line[:cut_pos])
+            indent = line.find('P') * ' '
+            line = indent + line[cut_pos:].lstrip()
+        new_code.append(line)
+    return new_code
+
+def get_c_code(node, need_protective_parenthesis=True):
+    return '\n'.join(reformat_code(get_code(node, need_protective_parenthesis)))
 
 def main():
     dim = int(sys.argv[1])
