@@ -46,10 +46,12 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
         cr.set_source_rgb(0, 1, 0)
 
         pt0, pt1 = conditionnal_diff
-        cr.move_to(x + tbl_x(pt0 % 3) + DOTSIZE/2,
-                   y + tbl_y(pt0 / 3) + DOTSIZE/2)
-        cr.line_to(x + tbl_x(pt1 % 3) + DOTSIZE/2,
-                   y + tbl_y(pt1 / 3) + DOTSIZE/2)
+        pt0x, pt0y = WPOS[pt0]
+        pt1x, pt1y = WPOS[pt1]
+        cr.move_to(x + tbl_x(pt0x) + DOTSIZE/2,
+                   y + tbl_y(pt0y) + DOTSIZE/2)
+        cr.line_to(x + tbl_x(pt1x) + DOTSIZE/2,
+                   y + tbl_y(pt1y) + DOTSIZE/2)
         cr.stroke()
 
 def main():
