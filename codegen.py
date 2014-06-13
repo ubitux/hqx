@@ -3,7 +3,7 @@ import sys, pprint
 
 ppos = [(0,0), (1,0), (2,0),
         (0,1),        (2,1),
-        (0,2), (1,2), (2,2)][::-1]
+        (0,2), (1,2), (2,2)]
 
 def get_interp_str(dim, interpid):
     prefix = 'return '
