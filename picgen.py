@@ -35,9 +35,9 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
             if (i, j) in enabled_dots:
                 cr.set_source_rgb(1, 0, 0)
             elif (i, j) in disabled_dots:
-                cr.set_source_rgb(0.4, 0.4, 0.4)
+                cr.set_source_rgb(0, 0, 0)
             else:
-                cr.set_source_rgb(0, 0, 0) # optionals (value doesn't matter)
+                cr.set_source_rgb(0.4, 0.4, 0.4) # optionals (value doesn't matter)
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
