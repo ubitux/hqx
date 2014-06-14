@@ -5,8 +5,8 @@ ppos = [(0,0), (1,0), (2,0),
         (0,1),        (2,1),
         (0,2), (1,2), (2,2)]
 
-def get_interp_str(dim, interpid):
-    prefix = 'return '
+def get_interp_str(dim, interpid, dst):
+    prefix = '%s = ' % dst if dst else 'return '
     pxidx, idx = data.interp_def[dim][interpid]
     coeffs, shift = data.interp_values[idx]
     n = len(pxidx)
@@ -19,7 +19,7 @@ def get_interp_str(dim, interpid):
     params.append(shift)
     return prefix + 'interp_%dpx(%s);' % (n, ', '.join(map(str, params)))
 
-def create_ast(dim, dstpos):
+def create_ast(dim, dstpos, dst=None):
     interps = [i for i in data.interps[dim] if i.startswith(dstpos)]
 
     # combinations with a condition must be dealt with first, because those
@@ -63,16 +63,23 @@ def create_ast(dim, dstpos):
             ast_cond = ['&&', ast_cond, diff_func]
 
         if not root_cond:
-            root_cond = entry_cond = ['if', ast_cond, get_interp_str(dim, interpid), None]
+            root_cond = entry_cond = ['if', ast_cond, get_interp_str(dim, interpid, dst), None]
         elif i == len(combs) - 1:
             assert entry_cond[3] is None
-            entry_cond[3] = get_interp_str(dim, interpid)
+            entry_cond[3] = get_interp_str(dim, interpid, dst)
         else:
             assert entry_cond[3] is None
-            entry_cond[3] = ['if', ast_cond, get_interp_str(dim, interpid), None]
+            entry_cond[3] = ['if', ast_cond, get_interp_str(dim, interpid, dst), None]
             entry_cond = entry_cond[3]
 
     return root_cond
+
+def merge_ast(*args):
+    # TODO
+    ast = []
+    for arg in args:
+        ast += arg
+    return ast
 
 def get_code(node, need_protective_parenthesis=True):
     if not isinstance(node, list):
@@ -80,9 +87,24 @@ def get_code(node, need_protective_parenthesis=True):
 
     if node[0] == 'if':
         code = ['if (%s)' % get_code(node[1], need_protective_parenthesis=False)[0]]
-        for x in get_code(node[2]):
-            code.append(' ' * 4 + x)
-        code += get_code(node[3])
+
+        content_true = get_code(node[2])
+        content_false = get_code(node[3])
+        assert content_true and content_false
+
+        end_branch = content_true[0].lstrip().startswith('return')
+        code += [' ' * 4 + x for x in content_true]
+
+        if end_branch:
+            code += content_false
+        else:
+            code.append('else')
+            if content_false[0].startswith('if'):
+                code[-1] += ' %s' % content_false[0]
+                code += content_false[1:]
+            else:
+                code += [' ' * 4 + x for x in content_false]
+
         return code
 
     assert node[0] in ('||', '&&')
@@ -100,6 +122,9 @@ def reformat_code(code):
         while len(line) > MAX_LEN:
             hard_trunc = line[:MAX_LEN]
             cut_pos = max(hard_trunc.rfind('&'), hard_trunc.rfind('|'))
+            #if cut_pos == -1:
+            #    break
+            #print '>>> [%s]' % line
             assert cut_pos != -1 # assume code is always breakable
             cut_pos += 1
             new_code.append(line[:cut_pos])
@@ -119,10 +144,18 @@ def main():
     elif dim == 3:
         raise "TODO"
     elif dim == 4:
-        code  = get_c_code(create_ast(dim, '00')) + '\n // ------------ \n'
-        code += get_c_code(create_ast(dim, '01')) + '\n // ------------ \n'
-        code += get_c_code(create_ast(dim, '10')) + '\n // ------------ \n'
-        code += get_c_code(create_ast(dim, '11')) + '\n'
+        ast00 = create_ast(dim, '00', dst='*dst00')
+        ast01 = create_ast(dim, '01', dst='*dst01')
+        ast10 = create_ast(dim, '10', dst='*dst10')
+        ast11 = create_ast(dim, '11', dst='*dst11')
+
+        #ast = merge_ast(ast00, ast01, ast10, ast11)
+        #code = get_c_code(ast) + '\n'
+
+        code  = get_c_code(ast00) + '\n\n'
+        code += get_c_code(ast01) + '\n\n'
+        code += get_c_code(ast10) + '\n\n'
+        code += get_c_code(ast11) + '\n\n'
 
     open('hq%dx_tpl.c' % dim, 'w').write(code)
 
