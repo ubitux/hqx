@@ -104,8 +104,7 @@ def main():
 
     pp_combs = data.combinations
 
-    #for dim in [2, 3, 4]:
-    for dim in [2, 4]:
+    for dim in [2, 3, 4]:
         print 'postprocessing hq%dx...' % dim
 
         interps = [i for i in data.interps[dim]]

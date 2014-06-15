@@ -142,7 +142,10 @@ def main():
     if dim == 2:
         code = get_c_code(create_ast(dim, '00')) + '\n'
     elif dim == 3:
-        raise "TODO"
+        ast00 = create_ast(dim, '00', dst='*dst00')
+        ast01 = create_ast(dim, '01', dst='*dst01')
+        code  = get_c_code(ast00) + '\n\n'
+        code += get_c_code(ast01) + '\n\n'
     elif dim == 4:
         ast00 = create_ast(dim, '00', dst='*dst00')
         ast01 = create_ast(dim, '01', dst='*dst01')

@@ -13,10 +13,18 @@ hq%x_tpl.c: codegen.py
 	python2 ./codegen.py $*
 hq%x.png: picgen.py
 	python2 ./picgen.py $*
-show: hq2x.png
+show: show2 show3 show4
+show2: hq2x.png
 	feh hq2x.png
-code: hq2x_tpl.c
+show3: hq3x.png
+	feh hq3x.png
+show4: hq4x.png
+	feh hq4x.png
+code: code2 code3 code4
+code2: hq2x_tpl.c
 	cat hq2x_tpl.c
+code3: hq3x_tpl.c
+	cat hq3x_tpl.c
 code4: hq4x_tpl.c
 	cat hq4x_tpl.c
 clean:
