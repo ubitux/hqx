@@ -43,9 +43,15 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
 
     if conditionnal_diff:
         cr.set_line_width(2)
-        cr.set_source_rgb(0, 1, 0)
 
-        pt0, pt1 = conditionnal_diff
+        if conditionnal_diff[0] < 0 or conditionnal_diff[1] < 0:
+            diff = (-conditionnal_diff[0], -conditionnal_diff[1])
+            cr.set_source_rgb(0, 1, 0)
+        else:
+            diff = conditionnal_diff
+            cr.set_source_rgb(0, 1, 1)
+
+        pt0, pt1 = diff
         pt0x, pt0y = WPOS[pt0]
         pt1x, pt1y = WPOS[pt1]
         cr.move_to(x + tbl_x(pt0x) + DOTSIZE/2,

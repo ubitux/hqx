@@ -24,6 +24,7 @@ for i in [2, 3, 4]:
     reset_cases = True
     rules = {}
     interpid_list = []
+    current_condition = None
 
     for line in open(hqx_c).readlines():
         line = line.strip()
@@ -55,6 +56,9 @@ for i in [2, 3, 4]:
                 current_condition = tuple(int(x) - 1 for x in re.findall('\[(\d+)\]', line))
                 assert len(current_condition) == 2
             elif 'else' in line:
+                if current_condition:
+                    current_condition = tuple(-x for x in current_condition)
+            elif line.strip() == '}' and current_condition and (current_condition[0] < 0 or current_condition[1] < 0):
                 current_condition = None
             elif line.startswith('PIXEL'):
                 pxid = line[5:] #.split('_', 1)
