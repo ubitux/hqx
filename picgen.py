@@ -20,9 +20,9 @@ def draw_interp(cr, x, y, sz, interp, values):
             if (i, j) in interp:
                 coeff = coeffs[interp.index((i, j))]
                 power = 1. - float(coeff) / (1<<nbits)
-                cr.set_source_rgb(power, 1, 1)
+                cr.set_source_rgb(power, 0, 1)
             else:
-                cr.set_source_rgb(0.4, 0.4, 0.4)
+                cr.set_source_rgb(0.7, 0.7, 0.7)
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
@@ -37,12 +37,12 @@ def draw_combi(cr, x, y, sz, dots, conditionnal_diff):
             elif (i, j) in disabled_dots:
                 cr.set_source_rgb(0, 0, 0)
             else:
-                cr.set_source_rgb(0.4, 0.4, 0.4) # optionals (value doesn't matter)
+                cr.set_source_rgb(0.7, 0.7, 0.7) # optionals (value doesn't matter)
             cr.rectangle(x + tbl_x(i), y + tbl_y(j), DOTSIZE, DOTSIZE)
             cr.fill()
 
     if conditionnal_diff:
-        cr.set_line_width(2)
+        cr.set_line_width(4)
 
         if conditionnal_diff[0] < 0 or conditionnal_diff[1] < 0:
             diff = (-conditionnal_diff[0], -conditionnal_diff[1])
@@ -93,7 +93,7 @@ def main():
     # draw surface
     s = cairo.SVGSurface(None, w, h)
     cr = cairo.Context(s)
-    cr.set_source_rgb(0.3, 0.3, 0.3)
+    cr.set_source_rgb(1.0, 1.0, 1.0)
     cr.rectangle(0, 0, w, h)
     cr.fill()
 
