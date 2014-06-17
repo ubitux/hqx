@@ -75,7 +75,6 @@ def create_ast(dim, dstpos, dst=None):
     return root_cond
 
 def merge_ast(*args):
-    # TODO
     ast = []
     for arg in args:
         ast += [arg]
@@ -95,7 +94,7 @@ def get_code(node, need_protective_parenthesis=True):
     if node[0] == 'if':
         code = ['if (%s)' % get_code(node[1], need_protective_parenthesis=False)[0]]
 
-        content_true = get_code(node[2])
+        content_true  = get_code(node[2])
         content_false = get_code(node[3])
         assert content_true and content_false
 
@@ -160,9 +159,6 @@ def reformat_code(code):
         while len(line) > MAX_LEN:
             hard_trunc = line[:MAX_LEN]
             cut_pos = max(hard_trunc.rfind('&'), hard_trunc.rfind('|'))
-            #if cut_pos == -1:
-            #    break
-            #print '>>> [%s]' % line
             assert cut_pos != -1 # assume code is always breakable
             cut_pos += 1
             new_code.append(line[:cut_pos])
