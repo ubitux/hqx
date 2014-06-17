@@ -78,12 +78,19 @@ def merge_ast(*args):
     # TODO
     ast = []
     for arg in args:
-        ast += arg
+        ast += [arg]
     return ast
 
 def get_code(node, need_protective_parenthesis=True):
     if not isinstance(node, list):
         return [node]
+
+    if isinstance(node[0], list): # root node with all the if, after a merge
+        code = []
+        for x in node:
+            code += get_code(x)
+            code += ['']
+        return code
 
     if node[0] == 'if':
         code = ['if (%s)' % get_code(node[1], need_protective_parenthesis=False)[0]]
@@ -114,6 +121,37 @@ def get_code(node, need_protective_parenthesis=True):
     c_code = (' %s ' % node[0]).join(code)
     return ['(%s)' % c_code if need_protective_parenthesis else c_code]
 
+def factor_ifs(code):
+    ifs = {}
+    for line in code:
+        ifpos = line.find('if (')
+        if ifpos != -1:
+            ifstr = line[ifpos+4:-1]
+            if ifstr in ifs:
+                ifs[ifstr] += 1
+            else:
+                ifs[ifstr] = 1
+
+    new_code_head = []
+    new_code = []
+    cond_id = 0
+    conds = {}
+    for line in code:
+        ifpos = line.find('if (')
+        if ifpos != -1:
+            ifstr = line[ifpos+4:-1]
+            if ifs[ifstr] > 1:
+                cond_str = conds.get(ifstr)
+                if not cond_str:
+                    cond_str = 'cond%02d' % len(conds)
+                    conds[ifstr] = cond_str
+                    new_code_head.append('const int %s = %s;' % (cond_str, ifstr))
+                line = line[0:ifpos+4] + cond_str + ')'
+        new_code.append(line)
+
+    return new_code_head + [''] + new_code
+
+
 def reformat_code(code):
     MAX_LEN = 80
     new_code = []
@@ -134,7 +172,7 @@ def reformat_code(code):
     return new_code
 
 def get_c_code(node, need_protective_parenthesis=True):
-    return '\n'.join(reformat_code(get_code(node, need_protective_parenthesis)))
+    return '\n'.join(reformat_code(factor_ifs(get_code(node, need_protective_parenthesis))))
 
 def main():
     dim = int(sys.argv[1])
@@ -144,21 +182,15 @@ def main():
     elif dim == 3:
         ast00 = create_ast(dim, '00', dst='*dst00')
         ast01 = create_ast(dim, '01', dst='*dst01')
-        code  = get_c_code(ast00) + '\n\n'
-        code += get_c_code(ast01) + '\n\n'
+        ast = merge_ast(ast00, ast01)
+        code = get_c_code(ast) + '\n'
     elif dim == 4:
         ast00 = create_ast(dim, '00', dst='*dst00')
         ast01 = create_ast(dim, '01', dst='*dst01')
         ast10 = create_ast(dim, '10', dst='*dst10')
         ast11 = create_ast(dim, '11', dst='*dst11')
-
-        #ast = merge_ast(ast00, ast01, ast10, ast11)
-        #code = get_c_code(ast) + '\n'
-
-        code  = get_c_code(ast00) + '\n\n'
-        code += get_c_code(ast01) + '\n\n'
-        code += get_c_code(ast10) + '\n\n'
-        code += get_c_code(ast11) + '\n\n'
+        ast = merge_ast(ast00, ast01, ast10, ast11)
+        code = get_c_code(ast) + '\n'
 
     open('hq%dx_tpl.c' % dim, 'w').write(code)
 
